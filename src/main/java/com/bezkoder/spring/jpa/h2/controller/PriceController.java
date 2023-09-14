@@ -2,6 +2,7 @@ package com.bezkoder.spring.jpa.h2.controller;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +31,7 @@ public class PriceController {
     PriceRepository priceRepository;
 
     @GetMapping("/prices")
-    public ResponseEntity<List<Price>> getAllPrices(@RequestParam(required = false) String curr) {
+    public ResponseEntity<List<Price>> getAllPrices(@RequestParam(value = "curr", required = false) String curr) {
         try {
             List<Price> prices = new ArrayList<Price>();
 
@@ -51,16 +52,17 @@ public class PriceController {
 
     @GetMapping("/getPrice")
     public ResponseEntity<List<Price>> findPricesByParameters(
-            @RequestParam(required = true) long brandId,
-            @RequestParam(required = true) long productId,
-            @RequestParam(required = true) String date) {
+            @RequestParam(value = "brandId", required = true) long brandId,
+            @RequestParam(value = "productId", required = true) long productId,
+            @RequestParam(value = "date", required = false) String date) {
         try {
             List<Price> prices = new ArrayList<Price>();
 
-            if (Optional.ofNullable(brandId).isPresent() || Optional.ofNullable(productId).isPresent() || date == null) {
+            if (!Optional.ofNullable(brandId).isPresent() || !Optional.ofNullable(productId).isPresent() || date == null) {
                 priceRepository.findAll().forEach(prices::add);
             } else {
-                LocalDate applicationDate = LocalDate.parse(date);
+//                LocalDate applicationDate = LocalDate.parse(date);
+                Date applicationDate = java.sql.Date.valueOf(date);
                 priceRepository.findByBrandIdAndProductIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(brandId, productId, applicationDate, applicationDate).forEach(prices::add);
             }
             if (prices.isEmpty()) {
